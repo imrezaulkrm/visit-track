@@ -1,0 +1,88 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>Visitor Stats</title>
+<style>
+  body {
+    margin: 0; 
+    height: 100vh; 
+    display: flex; 
+    flex-direction: column; 
+    justify-content: center; 
+    align-items: center; 
+    font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+    background: linear-gradient(135deg, #1e3c72, #2a5298);
+    color: white;
+  }
+  .stats-container {
+    background: rgba(0,0,0,0.3);
+    padding: 40px 60px;
+    border-radius: 12px;
+    box-shadow: 0 0 25px rgba(255,255,255,0.2);
+    text-align: center;
+  }
+  h1 {
+    margin-bottom: 20px;
+    font-weight: 600;
+  }
+  .count {
+    font-size: 4rem;
+    margin: 10px 0;
+    letter-spacing: 2px;
+  }
+</style>
+</head>
+<body>
+
+<div class="stats-container">
+  <h1>Visitor Stats</h1>
+  <div>Total Visitors: <span id="totalVisits" class="count">0</span></div>
+  <div>Live Visitors: <span id="liveVisitors" class="count">0</span></div>
+</div>
+
+<script>
+  // তোমার Django সার্ভারের IP আর PORT সেট করো এখানে
+  const BASE_API = 'http://127.0.0.1:8000/visitors';
+
+  // পেজ লোডে visitor ট্র্যাক করার জন্য POST রিকোয়েস্ট
+  async function trackVisitor() {
+    try {
+      await fetch(`${BASE_API}/track/`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json'
+        },
+      });
+    } catch (err) {
+      console.error('Failed to track visitor:', err);
+    }
+  }
+
+  // API থেকে visitor স্ট্যাটস নিয়ে UI আপডেট
+  async function fetchStats() {
+    try {
+      const res = await fetch(`${BASE_API}/stats/`);
+      if (!res.ok) throw new Error('Failed to fetch');
+      const data = await res.json();
+      document.getElementById('totalVisits').textContent = data.total_visits;
+      document.getElementById('liveVisitors').textContent = data.live_visitors;
+    } catch (error) {
+      console.error('Error fetching stats:', error);
+    }
+  }
+
+  // পেজ লোড হলে visitor ট্র্যাক করো, তারপর স্ট্যাটস আপডেট করো
+  window.onload = async () => {
+    await trackVisitor();         // প্রথমবার visitor লগ করো
+    await fetchStats();           // প্রথমবার stats আপডেট করো
+
+    setInterval(trackVisitor, 30000); // প্রতি ৩০ সেকেন্ডে visitor ট্র্যাক আপডেট
+    setInterval(fetchStats, 5000);    // প্রতি ৫ সেকেন্ডে স্ট্যাটস আপডেট
+  };
+</script>
+
+
+</body>
+</html>
